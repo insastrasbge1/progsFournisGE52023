@@ -130,15 +130,16 @@ public class Testeur {
             long maxTime, int maxThreads) {
         List<Class<? extends Trieur>> trieurs = List.of(
                 TriBulleSequentiel.class,
-                TriMergeSequentiel.class,
-                TriMergeParallel.class
+                 TriMergeSequentiel.class
+        //                ,TriMergeParallel.class
         );
         List<List<String>> res = compare(trieurs, sizeMin, multiplieurTaille, nbrPas, borneMax, maxTime, maxThreads);
         System.out.println(MatriceToText.formatMat(res, true));
     }
 
     public static void main(String[] args) {
-        compareToutEtAffiche(1, Math.pow(10,1.0/1) , 8, 100, 10000, 1000);
+        Debug.setNiveauMax(Debug.Niveau.INFO);
+        compareToutEtAffiche(1, Math.pow(10, 1.0 / 1), 6, 1000000, 1000, 1000);
     }
 
 }
