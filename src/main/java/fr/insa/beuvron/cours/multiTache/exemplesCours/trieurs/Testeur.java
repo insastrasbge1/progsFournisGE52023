@@ -58,6 +58,9 @@ public class Testeur {
 
     public static FinalResult test(Class<? extends Trieur> trieurType, int[] tab, long maxTime, int maxThreads) {
         long tempsDebut = System.currentTimeMillis();
+        // le Thread courant doit compter pour un thread utilisé
+        // donc il en reste maxThreads-1 disponibles
+        AtomicInteger threads = new AtomicInteger(maxThreads - 1);
         try {
             Debug.trace("début de trie : "
                     + trieurType.getSimpleName()
@@ -65,26 +68,29 @@ public class Testeur {
             );
             Constructor<? extends Trieur> co = trieurType.getConstructor(long.class, AtomicInteger.class, int[].class, int.class, int.class);
             long tempsFin = tempsDebut + maxTime;
-            Trieur trieur = co.newInstance(tempsFin, new AtomicInteger(maxThreads), tab, 0, tab.length);
+            Trieur trieur = co.newInstance(tempsFin, threads, tab, 0, tab.length);
             TrieStatus trieRes = trieur.effectueTrie();
             long elapsedTime = System.currentTimeMillis() - tempsDebut;
+            int usedThreads = maxThreads - threads.get();
             FinalResult res;
             if (trieRes == TrieStatus.TIMEOUT) {
-                res = new FinalResult(FinalStatus.TIMEOUT, elapsedTime);
+                res = new FinalResult(FinalStatus.TIMEOUT, elapsedTime, usedThreads);
             } else if (trieRes == TrieStatus.TOO_MUCH_THREADS) {
-                res = new FinalResult(FinalStatus.TOO_MUCH_THREADS, elapsedTime);
+                res = new FinalResult(FinalStatus.TOO_MUCH_THREADS, elapsedTime, usedThreads);
             } else if (trieRes == TrieStatus.INTERNAL_ERROR) {
-                res = new FinalResult(FinalStatus.INTERNAL_ERROR, elapsedTime);
+                res = new FinalResult(FinalStatus.INTERNAL_ERROR, elapsedTime, usedThreads);
             } else if (verifieTrie(tab)) {
-                res = new FinalResult(FinalStatus.OK, elapsedTime);
+                res = new FinalResult(FinalStatus.OK, elapsedTime, usedThreads);
             } else {
-                res = new FinalResult(FinalStatus.SORT_ERROR, elapsedTime);
+                res = new FinalResult(FinalStatus.SORT_ERROR, elapsedTime, usedThreads);
             }
             Debug.trace("fin trie : " + trieRes);
             return res;
         } catch (Exception ex) {
-            Debug.out(Debug.Niveau.ERROR, ExceptionsUtils.messageEtPremiersAppelsDansPackage(ex, "fr.insa.beuvron", 5));
-            return new FinalResult(FinalStatus.INTERNAL_ERROR, System.currentTimeMillis() - tempsDebut);
+            Debug.erreur(ExceptionsUtils.messageEtPremiersAppelsDansPackage(ex, "fr.insa.beuvron", 5));
+            long elapsedTime = System.currentTimeMillis() - tempsDebut;
+            int usedThreads = maxThreads - threads.get();
+            return new FinalResult(FinalStatus.INTERNAL_ERROR, elapsedTime, usedThreads);
         }
     }
 
@@ -110,13 +116,13 @@ public class Testeur {
         double curMult = 1;
         for (int i = 0; i < nbrPas; i++) {
             int size = sizeMin * (int) curMult;
-            Debug.trace("------- taille : " + size);
+            Debug.info("------- taille : " + size);
             curLine = new ArrayList<>(trieurs.size() + 1);
             res.add(curLine);
             curLine.add("" + size);
             int[] leTab = tabAlea(size, borneMax);
             for (var trieurCL : trieurs) {
-                Debug.trace("-- trieur : " + trieurCL.getSimpleName());
+                Debug.info("-- trieur : " + trieurCL.getSimpleName());
                 int[] copie = Arrays.copyOf(leTab, leTab.length);
                 FinalResult resTrie = test(trieurCL, copie, maxTime, maxThreads);
                 curLine.add(resTrie.timeOrStatus());
@@ -130,8 +136,9 @@ public class Testeur {
             long maxTime, int maxThreads) {
         List<Class<? extends Trieur>> trieurs = List.of(
                 TriBulleSequentiel.class,
-                 TriMergeSequentiel.class
-        //                ,TriMergeParallel.class
+                TriMergeSequentiel.class,
+                TriMergeParallel.class,
+                TriMergeSemiParallel.class
         );
         List<List<String>> res = compare(trieurs, sizeMin, multiplieurTaille, nbrPas, borneMax, maxTime, maxThreads);
         System.out.println(MatriceToText.formatMat(res, true));
@@ -139,7 +146,7 @@ public class Testeur {
 
     public static void main(String[] args) {
         Debug.setNiveauMax(Debug.Niveau.INFO);
-        compareToutEtAffiche(1, Math.pow(10, 1.0 / 1), 6, 1000000, 1000, 1000);
+        compareToutEtAffiche(1, Math.pow(10, 1.0 / 1), 9, 100, 10000, 10000);
     }
 
 }

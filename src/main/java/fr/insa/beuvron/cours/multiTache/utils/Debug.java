@@ -59,7 +59,6 @@ public class Debug {
     }
     
     public static void out(Niveau niveau,String message)  {
-        OUT.print(niveau + " : ");
         out(niveau.getNiveau(), message);
     }
     

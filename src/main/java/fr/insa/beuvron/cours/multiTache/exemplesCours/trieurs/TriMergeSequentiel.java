@@ -20,9 +20,20 @@ package fr.insa.beuvron.cours.multiTache.exemplesCours.trieurs;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-
 /**
- *
+ * Un tri par division-fusion parallèle.
+ * Principe :
+ * <pre>
+ * {@code 
+ * Pour trier les élément d'index min <= i < max
+ * si max-min > 1
+ *   . milieu = (max+min) / 2
+ *   . trier les éléments d'index min <= i < milieu
+ *   . trier les éléments d'index milieu <= i < max
+ *   . faire la fusion des éléments min<=i<milieu (triés) et milieu<=i<max (triés)
+ *       pour obtenir les éléments min<=i<max triés
+ * } </pre>
+ * On voit facilement la structure récursive
  * @author francois
  */
 public class TriMergeSequentiel extends Trieur {

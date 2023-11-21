@@ -28,10 +28,12 @@ public class FinalResult {
     
     private FinalStatus status;
     private long elapsedTime;
+    private int totalNumberOfThreadUsed;
 
-    public FinalResult(FinalStatus status, long elapsedTime) {
+    public FinalResult(FinalStatus status, long elapsedTime,int totalNumberOfThreadUsed) {
         this.status = status;
         this.elapsedTime = elapsedTime;
+        this.totalNumberOfThreadUsed = totalNumberOfThreadUsed;
     }
 
     public FinalStatus getStatus() {
@@ -56,8 +58,15 @@ public class FinalResult {
         if (this.status != FinalStatus.OK) {
             return this.status.toString();
         } else {
-            return timeToString(this.elapsedTime);
+            return timeToString(this.elapsedTime) + " ; " + this.totalNumberOfThreadUsed + "T";
         }
+    }
+
+    /**
+     * @return the totalNumberOfThreadUsed
+     */
+    public int getTotalNumberOfThreadUsed() {
+        return totalNumberOfThreadUsed;
     }
     
     
