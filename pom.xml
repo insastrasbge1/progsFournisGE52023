@@ -11,4 +11,45 @@
         <maven.compiler.target>20</maven.compiler.target>
         <exec.mainClass>fr.insa.beuvron.cours.ge5.progsfournisge52023.ProgsFournisGE52023</exec.mainClass>
     </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+                <executions>
+                    <!-- add all files exept .java from main sources :-->
+                    <!-- ce n'est pas conforme à la convention maven, mais je trouve bien
+                    pratique de placer les fichiers dont dépendent directement les sources
+                    (exemple icones...) dans le même package (ou un sous dossier ex : images)
+                    que les fichiers .java -->
+                    <execution>
+                        <id>copy-resources</id>
+                        <!-- here the phase you need -->
+                        <!-- liste des phases : voir http://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html#Lifecycle_Reference -->
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                            <resources>          
+                                <resource>
+                                    <directory>${basedir}/src/main/java</directory>
+                                    <filtering>false</filtering>
+                                    <excludes>
+                                        <exclude>**/*.java</exclude>
+                                    </excludes>
+                                </resource>
+                            </resources>              
+                        </configuration>            
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
