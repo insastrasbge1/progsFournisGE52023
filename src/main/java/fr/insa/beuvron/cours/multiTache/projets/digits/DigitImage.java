@@ -28,7 +28,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
 import javax.imageio.ImageIO;
+import weka.core.Instances;
+import weka.core.Attribute;
+import weka.core.DenseInstance;
+import weka.core.Instance;
 
 /**
  * Des petits utilitaires pour gérer des "images" de digits tels que définis par
@@ -45,7 +52,9 @@ import javax.imageio.ImageIO;
  */
 public class DigitImage {
 
-    public static int TAILLE = 28;
+    public static final int TAILLE = 28;
+    
+    public static final Instances EMPTY_MNIST_DATASET = wekaMnistEmptyDataset();
 
     /**
      * converti n'importe quelle image en DigitImage
@@ -129,6 +138,53 @@ public class DigitImage {
         ImageIO.write(img, format, outFile);
     }
 
+    /**
+     * defini les attributs du dataset MNIST dans WEKA.
+     * la classe (label) est le premier attribut. Il semble indispensable pour
+     * définir la classe par setClassIndex, ce qui semble indispensable pour
+     * avoir une Instance weka correcte.
+     * Les attribut suivant sont les valeurs de chaque pixel, avec pour nom
+     * de l'attribut : ixj : exemple "3x18" pour le pixel en 3ième ligne 18ième colonne.
+     * les lignes/colonnes sont numérotés en partant de 1 (et non de 0): 
+     * le premier attribut est l'attribut "1x1" 
+     * voir partie "using the API" de la documentation WEKA.
+     * https://deac-fra.dl.sourceforge.net/project/weka/documentation/3.8.x/WekaManual-3-8-3.pdf
+     *
+     * @param digitImage
+     * @return
+     */
+    public static Instances wekaMnistEmptyDataset() {
+        // 1) definition des attributs 
+        ArrayList<Attribute> attrs = new ArrayList<>(TAILLE * TAILLE);
+        attrs.add(new Attribute("label"));
+        for (int i = 1; i <= TAILLE; i++) {
+            for (int j = 1; j <= TAILLE; j++) {
+                attrs.add(new Attribute(i + "x" + j));
+            }
+        }
+        Instances res = new Instances("mnist", attrs, 0);
+        res.setClassIndex(0);
+        return res;
+    }
+    
+    /**
+     * Transforme un digitImage en une instance au sens de WEKA.
+     * L'instance doit faire référence au dataset (Instances weka) pour la
+     * définition des attributs.
+     * Le premier attribut est la classe (label). Il n'a normalement pas de sens
+     * pour une instance que l'on veut classifier, mais semble indispensable
+     * pour que weka interprète correctement l'instance.
+     * @param digitImage
+     * @return 
+     */
+    public static Instance toWekaInstance(byte[] digitImage) {
+        double[] asDoubles = IntStream.range(0, digitImage.length+1)
+                .mapToDouble(i -> i == 0 ? 0.0 : (double) digitImage[i-1]).toArray();
+        Instance res = new DenseInstance(1.0, asDoubles);
+        res.setDataset(EMPTY_MNIST_DATASET);
+        return res;
+    }
+    
     public static void testRessource(String imgRess) throws IOException {
         System.out.println("image trouvée dans ressource " + imgRess + " : ");
         byte[] img = fromFichierImageDansRessources(imgRess);
@@ -165,7 +221,7 @@ public class DigitImage {
             String pathOut = pathRacine + "digitImage1.png";
             toFichier(img, new File(pathOut), "PNG");
             System.out.println("Sauvegarde de img2.png des ressources dans " + pathRacine);
-            
+
         } catch (IOException ex) {
             throw new Error(ex);
         }

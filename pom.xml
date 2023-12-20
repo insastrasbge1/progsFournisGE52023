@@ -12,6 +12,15 @@
         <exec.mainClass>fr.insa.beuvron.cours.ge5.progsfournisge52023.ProgsFournisGE52023</exec.mainClass>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>nz.ac.waikato.cms.weka</groupId>
+            <artifactId>weka-stable</artifactId>
+            <version>3.8.6</version>
+        </dependency>
+
+    </dependencies>
+
     <build>
         <plugins>
             <plugin>
